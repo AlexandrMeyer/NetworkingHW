@@ -47,8 +47,8 @@ class ImageViewController: UIViewController {
         copyrightLabel.text = photoInfo.copyright
         navigationItem.title = photoInfo.title
         DispatchQueue.global().async {
- //           guard let url = URL(string: photoInfo.url ?? "") else { return }
-            guard let imagaData = try? Data(contentsOf: photoInfo.url!) else {
+            guard let url = photoInfo.url else { return }
+            guard let imagaData = try? Data(contentsOf: url) else {
                 return }
             DispatchQueue.main.async {
                 self.imageView.image =  UIImage(data: imagaData)
