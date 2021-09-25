@@ -20,11 +20,6 @@ class ImageViewController: UIViewController {
         activityIndicator.startAnimating()
         activityIndicator.hidesWhenStopped = true
         
-        descriptionLabel.text = ""
-        copyrightLabel.text = ""
-        navigationItem.title = ""
-        imageView.image = UIImage(systemName: "photo.on.rectangle")
-        
         NetworkManager.shared.fetchPotoInfo { result in
             DispatchQueue.main.async {
                 switch result {
