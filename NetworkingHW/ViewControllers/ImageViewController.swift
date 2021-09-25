@@ -19,41 +19,45 @@ class ImageViewController: UIViewController {
         super.viewDidLoad()
         activityIndicator.startAnimating()
         activityIndicator.hidesWhenStopped = true
-        fetchPotoInfo()
-    }
-    
-    private func fetchPotoInfo() {
-        let urlComponent = "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY"
         
-        guard let url = URL(string: urlComponent) else { return }
+        descriptionLabel.text = ""
+        copyrightLabel.text = ""
+        navigationItem.title = ""
+        imageView.image = UIImage(systemName: "photo.on.rectangle")
         
-        URLSession.shared.dataTask(with: url) { data, _, error in
-            guard let data = data else { return }
-
-            do {
-                let photoInfo = try JSONDecoder().decode(PhotoInfo.self, from: data)
-                
-                DispatchQueue.main.async {
-                    self.updateUI(with: photoInfo)
-                }
-            } catch let error {
-                print(error.localizedDescription)
-            }
-        }.resume()
-    }
-    
-    private func updateUI(with photoInfo: PhotoInfo) {
-        descriptionLabel.text = photoInfo.explanation
-        copyrightLabel.text = photoInfo.copyright
-        navigationItem.title = photoInfo.title
-        DispatchQueue.global().async {
-            guard let url = photoInfo.url else { return }
-            guard let imagaData = try? Data(contentsOf: url) else {
-                return }
+        NetworkManager.shared.fetchPotoInfo { result in
             DispatchQueue.main.async {
-                self.imageView.image =  UIImage(data: imagaData)
-                self.activityIndicator.stopAnimating()
+                switch result {
+                case .success(let photoInfo):
+                    self.updataUI(with: photoInfo)
+                case .failure(let error):
+                    self.updateUI(with: error)
+                }
             }
         }
+    }
+    
+    func updataUI(with photoInfo: PhotoInfo) {
+        guard let url = photoInfo.url else { return }
+        NetworkManager.shared.fetchImage(from: url) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let image):
+                    self.imageView.image = image
+                    self.navigationItem.title = photoInfo.title
+                    self.copyrightLabel.text = photoInfo.copyright
+                    self.descriptionLabel.text = photoInfo.explanation
+                case .failure(let error):
+                    self.updateUI(with: error)
+                }
+            }
+        }
+    }
+    
+    func updateUI(with error: Error) {
+        self.title = "Error Fetching Photo"
+        self.imageView.image = UIImage(systemName: "exclamationmark.octagon")
+        self.descriptionLabel.text = error.localizedDescription
+        self.copyrightLabel.text = ""
     }
 }
