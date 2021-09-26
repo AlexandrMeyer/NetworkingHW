@@ -18,14 +18,12 @@ class NetworkManager {
         
         URLSession.shared.dataTask(with: url) { data, _, error in
             if let data = data {
-                
                 do {
                     let photoInfo = try JSONDecoder().decode(PhotoInfo.self, from: data)
                     completion(.success(photoInfo))
                 } catch let error {
                     completion(.failure(error))
                 }
-                
             } else if let error = error {
                 completion(.failure(error))
             }

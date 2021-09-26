@@ -38,10 +38,11 @@ class ImageViewController: UIViewController {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let image):
-                    self.imageView.image = image
                     self.navigationItem.title = photoInfo.title
                     self.copyrightLabel.text = photoInfo.copyright
                     self.descriptionLabel.text = photoInfo.explanation
+                    self.imageView.image = image
+                    self.activityIndicator.stopAnimating()
                 case .failure(let error):
                     self.updateUI(with: error)
                 }
