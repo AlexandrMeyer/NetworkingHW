@@ -24,7 +24,10 @@ class ImageViewController: UIViewController {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let photoInfo):
-                    self.updataUI(with: photoInfo)
+                    self.navigationItem.title = photoInfo.title
+                    self.copyrightLabel.text = photoInfo.copyright
+                    self.descriptionLabel.text = photoInfo.explanation
+                    self.updataImage(with: photoInfo)
                 case .failure(let error):
                     self.updateUI(with: error)
                 }
@@ -32,21 +35,16 @@ class ImageViewController: UIViewController {
         }
     }
     
-    func updataUI(with photoInfo: PhotoInfo) {
+    func updataImage(with photoInfo: PhotoInfo) {
         guard let url = photoInfo.url else { return }
         NetworkManager.shared.fetchImage(from: url) { result in
-            DispatchQueue.main.async {
                 switch result {
-                case .success(let image):
-                    self.navigationItem.title = photoInfo.title
-                    self.copyrightLabel.text = photoInfo.copyright
-                    self.descriptionLabel.text = photoInfo.explanation
-                    self.imageView.image = image
+                case .success(let data):
+                    self.imageView.image = UIImage(data: data)
                     self.activityIndicator.stopAnimating()
                 case .failure(let error):
                     self.updateUI(with: error)
                 }
-            }
         }
     }
     

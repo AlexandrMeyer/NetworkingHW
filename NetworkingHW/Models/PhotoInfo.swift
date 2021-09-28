@@ -11,5 +11,5 @@ struct PhotoInfo: Decodable {
     let title: String?
     let explanation: String?
     let copyright: String?
-    let url: URL?
+    let url: String?
 }

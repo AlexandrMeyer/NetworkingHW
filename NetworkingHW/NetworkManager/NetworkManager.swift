@@ -5,42 +5,58 @@
 //  Created by Александр on 25.09.21.
 //
 
-import UIKit
+import Foundation
+
+enum NetworkError: Error {
+    case invalidURL
+    case noData
+    case decodingError
+}
 
 class NetworkManager {
     
     static let shared = NetworkManager()
     
-    func fetchPotoInfo(completion: @escaping (Result<PhotoInfo, Error>) -> Void) {
+    func fetchPotoInfo(completion: @escaping (Result<PhotoInfo, NetworkError>) -> Void) {
         let urlComponent = "https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY"
         
-        guard let url = URL(string: urlComponent) else { return }
+        guard let url = URL(string: urlComponent) else {
+            completion(.failure(.invalidURL))
+            return
+        }
         
         URLSession.shared.dataTask(with: url) { data, _, error in
-            if let data = data {
+            guard let data = data else {
+                completion(.failure(.noData))
+                print(error?.localizedDescription ?? "No error description")
+                return
+            }
+            
                 do {
                     let photoInfo = try JSONDecoder().decode(PhotoInfo.self, from: data)
                     completion(.success(photoInfo))
-                } catch let error {
-                    completion(.failure(error))
+                } catch {
+                    completion(.failure(.decodingError))
                 }
-            } else if let error = error {
-                completion(.failure(error))
-            }
-        }.resume()
-    }
+            
+            }.resume()
+        }
     
-    func fetchImage(from url: URL, completion: @escaping (Result<UIImage, Error>) -> Void) {
-        
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            if let data = data, let image = UIImage(data: data) {
-                completion(.success(image))
-            } else if let error = error {
-                completion(.failure(error))
-            } else {
-                completion(.failure(error!))
+    
+    func fetchImage(from url: String?, complition: @escaping(Result<Data, NetworkError>) -> Void) {
+        guard let url = URL(string: url ?? "") else {
+            complition(.failure(.invalidURL))
+            return
+        }
+        DispatchQueue.global().async {
+            guard let imageData = try? Data(contentsOf: url) else {
+                complition(.failure(.noData))
+                return
             }
-        }.resume()
+            DispatchQueue.main.async {
+                complition(.success(imageData))
+            }
+        }
     }
     
     private init() {}
