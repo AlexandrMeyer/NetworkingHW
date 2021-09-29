@@ -19,14 +19,16 @@ class ImageViewController: UIViewController {
         super.viewDidLoad()
         activityIndicator.startAnimating()
         activityIndicator.hidesWhenStopped = true
+        copyrightLabel.text = ""
+        descriptionLabel.text = ""
         
-        NetworkManager.shared.fetchPotoInfo { result in
+        NetworkManager.shared.fetchPotoInfoWithAlamofire(from: NetworkManager.shared.apiNASA) { result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let photoInfo):
                     self.navigationItem.title = photoInfo.title
                     self.copyrightLabel.text = photoInfo.copyright
-                    self.descriptionLabel.text = photoInfo.explanation
+                    self.descriptionLabel.text = photoInfo.description
                     self.updataImage(with: photoInfo)
                 case .failure(let error):
                     self.updateUI(with: error)
@@ -36,16 +38,9 @@ class ImageViewController: UIViewController {
     }
     
     func updataImage(with photoInfo: PhotoInfo) {
-        guard let url = photoInfo.url else { return }
-        NetworkManager.shared.fetchImage(from: url) { result in
-                switch result {
-                case .success(let data):
-                    self.imageView.image = UIImage(data: data)
-                    self.activityIndicator.stopAnimating()
-                case .failure(let error):
-                    self.updateUI(with: error)
-                }
-        }
+        guard let stringURL = photoInfo.url else { return }
+        imageView.image = UIImage(contentsOfFile: stringURL)
+        activityIndicator.stopAnimating()
     }
     
     func updateUI(with error: Error) {
