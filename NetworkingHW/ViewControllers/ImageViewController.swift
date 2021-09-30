@@ -38,8 +38,9 @@ class ImageViewController: UIViewController {
     }
     
     func updataImage(with photoInfo: PhotoInfo) {
-        guard let stringURL = photoInfo.url else { return }
-        imageView.image = UIImage(contentsOfFile: stringURL)
+        guard let stringURL = photoInfo.url, let url = URL(string: stringURL) else { return }
+        guard let imageData = try? Data(contentsOf: url) else { return }
+        imageView.image = UIImage(data: imageData)
         activityIndicator.stopAnimating()
     }
     
